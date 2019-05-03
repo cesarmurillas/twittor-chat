@@ -143,7 +143,7 @@ self.addEventListener('push', e =>{
         //icon: 'img/icons/icon-72x72.png'
         icon: `img/avatars/${data.usuario}.jpg`,
         badge: 'img/favicon.ico',
-        image: 'http://datainfox.com/wp-content/uploads/2017/10/avengers-tower.jpg',
+        image: 'img/avengers-tower.jpg',
         vibrate: [125, 75, 125, 275, 200, 275, 125, 75, 125, 275, 200, 600, 200, 600],
         openUrl: '/',
         data: {
