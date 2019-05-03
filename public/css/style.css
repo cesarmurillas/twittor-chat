@@ -20,6 +20,23 @@
 }
 
 /* Personalizados */
+button {
+  width: 80%;
+  border-radius: 5px;
+  border: none;
+  padding: 5px;
+  color: white;
+  font-size: 14px;
+}
+
+.btn-noti-activadas {
+  background-color: #3498db;
+}
+
+.btn-noti-desactivadas {
+  background-color: red;
+}
+
 .oculto {
   display: none !important;
 }
@@ -181,7 +198,9 @@ textarea {
     -o-border-radius: 8px;
     border-radius: 8px;
     text-align: left;
-    display: inline-block; 
+    display: inline-block;
+    padding-bottom: 5px;
+     
   }
     .bubble:hover > .over-bubble {
       opacity: 1; 
@@ -442,7 +461,3 @@ and (-webkit-device-pixel-ratio : 3) {
 .retweet div {
     color: white;
 }
-
-/* .mdtoast {
-  background: #00ac09 !important;
-} */

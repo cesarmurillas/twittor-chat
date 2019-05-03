@@ -2,6 +2,8 @@
 var url = window.location.href;
 var swLocation = '/sw.js';
 
+var swReg;
+
 
 if ( navigator.serviceWorker ) {
 
@@ -10,8 +12,19 @@ if ( navigator.serviceWorker ) {
         swLocation = '/sw.js';
     }
 
+    window.addEventListener('load', function(){
 
-    navigator.serviceWorker.register( swLocation );
+        navigator.serviceWorker.register(swLocation).then( function(req) {
+
+            swReg = req;
+            swReg.pushManager.getSubscription().then(verificaSuscripcion);
+
+        });
+
+    });
+
+
+    
 }
 
 
@@ -33,6 +46,9 @@ var modalAvatar = $('#modal-avatar');
 var avatarBtns  = $('.seleccion-avatar');
 var txtMensaje  = $('#txtMensaje');
 
+var btnActivadas = $('.btn-noti-activadas');
+var btnDesactivadas = $('.btn-noti-desactivadas');
+
 // El usuario, contiene el ID del hÃ©roe seleccionado
 var usuario;
 
@@ -41,7 +57,7 @@ var usuario;
 
 // ===== Codigo de la aplicaciÃ³n
 
-function crearMensajeHTML(mensaje, personaje) {
+function crearMensajeHTML(mensaje, personaje, date) {
 
     var content =`
     <li class="animated fadeIn fast">
@@ -53,6 +69,8 @@ function crearMensajeHTML(mensaje, personaje) {
                 <h3>@${ personaje }</h3>
                 <br/>
                 ${ mensaje }
+                <br/>
+                <h3 style="float: right;font-size: 11.5px; font-weight: normal;">${ date }</h3>
             </div>
             
             <div class="arrow"></div>
@@ -64,6 +82,11 @@ function crearMensajeHTML(mensaje, personaje) {
     cancelarBtn.click();
 
 }
+
+function getDateToString(current_datetime) {
+
+    return formatted_date = current_datetime.getFullYear() + "-" + (current_datetime.getMonth() + 1) + "-" + current_datetime.getDate() + " " + current_datetime.getHours() + ":" + current_datetime.getMinutes() + ":" + current_datetime.getSeconds();
+};
 
 
 
@@ -135,6 +158,7 @@ cancelarBtn.on('click', function() {
 postBtn.on('click', function() {
 
     var mensaje = txtMensaje.val();
+    var date = getDateToString(new Date());
     if ( mensaje.length === 0 ) {
         cancelarBtn.click();
         return;
@@ -142,7 +166,8 @@ postBtn.on('click', function() {
 
     var data = {
         mensaje: mensaje,
-        user: usuario
+        user: usuario,
+        date: date
     }
 
     fetch('api', {
@@ -156,7 +181,7 @@ postBtn.on('click', function() {
     .then( res => console.log('app.js', res))
     .catch( err => console.log('app.js: ', err));
 
-    crearMensajeHTML(mensaje, usuario);
+    crearMensajeHTML(mensaje, usuario, date);
 
 });
 
@@ -169,7 +194,7 @@ function getMensajes() {
             console.log(posts);
 
             posts.forEach(post => {
-                crearMensajeHTML(post.mensaje, post.user);
+                crearMensajeHTML(post.mensaje, post.user, post.date);
             });
 
             
@@ -214,3 +239,121 @@ window.addEventListener('online', isOnline);
 window.addEventListener('offline', isOnline);
 
 isOnline();
+
+
+//Notificaciones
+
+function verificaSuscripcion( activadas) {
+
+    //console.log(activadas);
+
+    if(activadas){
+
+        btnActivadas.removeClass('oculto');
+        btnDesactivadas.addClass('oculto');
+    } else {
+
+        btnActivadas.addClass('oculto');
+        btnDesactivadas.removeClass('oculto');
+    }
+    
+}
+
+//verificaSuscripcion();
+
+
+function enviarNotificacion() {
+
+    const notificacionOps = {
+        body: 'Este es el cuerpo de la notificacion',
+        icon: 'img/icons/icon-72x72.png'
+    }
+
+    const n = new Notification('Hola mundo', notificacionOps);
+
+    n.onclick = () => {
+        console.log('Click');
+    }
+    
+}
+
+function notificame() {
+    
+    if(!window.Notification){
+        console.log('Este navegador no soporta notificaciones');
+        return;
+    } 
+
+    if(Notification.permission === 'granted'){
+
+        //new Notification('Hola mundo! - granted');
+        enviarNotificacion();
+
+    } else if(Notification.permission !==  'denied' || Notification.permission === 'default'){
+
+        Notification.requestPermission( function( permission){
+
+            console.log(permission);
+
+            if(permission === 'granted'){
+                //new Notification('Hola mundo! - pregunta');
+                enviarNotificacion();
+            }
+        });
+    }
+}
+//notificame();
+
+//Get key
+
+function getPublicKey() {
+    // fetch('/api/key')
+    // .then( res => res.text())
+    // .then( console.log);
+
+
+    return fetch('/api/key')
+        .then( res => res.arrayBuffer())
+        // retornar arreglo, pero como un Uint8array
+        .then( key => new Uint8Array(key));
+};
+
+//getPublicKey().then(console.log);
+
+
+btnDesactivadas.on('click', function(){
+    if(!swReg) return console.log('No hay registro de SW');
+
+    getPublicKey().then( function ( key ) {
+        swReg.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: key
+        })
+        .then( res => res.toJSON())
+        .then( suscripcion => {
+            //console.log(suscripcion);
+
+            fetch('api/subscribe', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json'},
+                body: JSON.stringify(suscripcion)
+            })
+                .then(verificaSuscripcion)
+                .catch(cancelarSuscripcion);
+        });
+    });
+
+});
+
+
+function cancelarSuscripcion() {
+    
+    swReg.pushManager.getSubscription().then( subs =>{
+        subs.unsubscribe().then ( () => verificaSuscripcion(false));
+    });
+}
+
+btnActivadas.on('click', function () {
+
+    cancelarSuscripcion();
+})

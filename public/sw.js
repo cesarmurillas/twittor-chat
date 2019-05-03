@@ -59,6 +59,8 @@ self.addEventListener('activate', e => {
 
         keys.forEach( key => {
 
+            console.log('KEY: ', key);
+
             if (  key !== STATIC_CACHE && key.includes('static') ) {
                 return caches.delete(key);
             }
@@ -124,6 +126,85 @@ self.addEventListener('sync', e =>{
 
         e.waitUntil(respuesta);
     }
+});
+
+
+//Escuchar PUSH
+self.addEventListener('push', e =>{
+
+
+    const data = JSON.parse(e.data.text());
+
+    //console.log(data);
+
+    const title = data.titulo;
+    const options = {
+        body: data.cuerpo,
+        //icon: 'img/icons/icon-72x72.png'
+        icon: `img/avatars/${data.usuario}.jpg`,
+        badge: 'img/favicon.ico',
+        image: 'http://datainfox.com/wp-content/uploads/2017/10/avengers-tower.jpg',
+        vibrate: [125, 75, 125, 275, 200, 275, 125, 75, 125, 275, 200, 600, 200, 600],
+        openUrl: '/',
+        data: {
+            //url: 'https://www.ceiba.com.co/devfest2019/',
+            url: '/',
+            id: data.usuario
+        },
+        actions: [
+            {
+                action: 'thor-action',
+                //title: 'Thor',
+                title: 'Si por favor',
+                icon: '/img/avatar/thor.jpg'
+            },
+            {
+                action: 'ironman-action',
+                //title: 'Ironman',
+                title: 'No gracias',
+                icon: '/img/avatar/ironman.jpg'
+            }
+        ]
+    };
+
+
+    e.waitUntil(self.registration.showNotification(title, options));
+});
+
+
+self.addEventListener('notificationclose', e =>{
+    console.log('Notificacion cerrada', e);
+});
+
+self.addEventListener('notificationclick', e =>{
+
+    const notificacion = e.notification;
+    const accion = e.action;
+
+    console.log({notificacion, accion});
+
+    const respuesta = clients.matchAll()
+    .then( clientes => {
+        let cliente = clientes.find( c => {
+            return c.visibilityState === 'visible';
+        });
+
+        if(cliente !== undefined){
+            cliente.navigate( notificacion.data.url);
+            cliente.focus();
+        } else {
+            clients.openWindow(notificacion.data.url);
+        }
+
+        notificacion.close();
+
+    });
+    
+    
+    e.waitUntil(respuesta);
+
+    
+
 });
 
 

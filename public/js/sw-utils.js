@@ -41,7 +41,12 @@ function actualizaCacheStatico( staticCache, req, APP_SHELL_INMUTABLE ) {
 //Network with cache fallback / update
 function manejoApiMensajes(cacheName, req) {
 
-    if( req.clone().method === 'POST' ){
+    //Implementacion de la estrategia Network Only
+    if((req.url.indexOf('/api/key') >= 0) || req.url.indexOf('/api/subscribe') >= 0){
+        
+        return fetch(req);
+
+    } else  if( req.clone().method === 'POST' ){
         //POSTEO DE UN NUEVO MENSAJE
 
         if (self.registration.sync){
