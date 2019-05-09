@@ -62,6 +62,31 @@ button {
   position: relative; 
 }
 
+/* Camera */
+.camara-contenedor {
+  width: 100%;
+  padding: 20px;
+  border-radius: 10px;
+  overflow: hidden;
+  border: 5px solid white;
+}
+
+.camara-contenedor button {
+  background-color: #3498db;
+  color: white;
+}
+
+#fotoTemp {
+  width: 300px;
+  height: 300px;
+  display: none;
+}
+
+.foto-mensaje {
+  width: 150px;
+  height: 150px;
+}
+
 /* Modal */
 #modal { 
   position: fixed;

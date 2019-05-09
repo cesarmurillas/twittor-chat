@@ -5,7 +5,7 @@ importScripts('js/sw-utils.js');
 
 
 
-const STATIC_CACHE    = 'static-v2';
+const STATIC_CACHE    = 'static-v1';
 const DYNAMIC_CACHE   = 'dynamic-v1';
 const INMUTABLE_CACHE = 'inmutable-v1';
 
@@ -21,6 +21,7 @@ const APP_SHELL = [
     'img/avatars/thor.jpg',
     'img/avatars/wolverine.jpg',
     'js/app.js',
+    'js/camara-class.js',
     'js/sw-utils.js',
     'js/libs/pugins/mdtoast.min.css',
     'js/libs/pugins/mdtoast.min.js'
@@ -131,12 +132,8 @@ self.addEventListener('sync', e =>{
 
 //Escuchar PUSH
 self.addEventListener('push', e =>{
-
-
     const data = JSON.parse(e.data.text());
-
     //console.log(data);
-
     const title = data.titulo;
     const options = {
         body: data.cuerpo,
@@ -166,8 +163,6 @@ self.addEventListener('push', e =>{
             }
         ]
     };
-
-
     e.waitUntil(self.registration.showNotification(title, options));
 });
 
@@ -195,12 +190,8 @@ self.addEventListener('notificationclick', e =>{
         } else {
             clients.openWindow(notificacion.data.url);
         }
-
         notificacion.close();
-
-    });
-    
-    
+    });   
     e.waitUntil(respuesta);
 
     

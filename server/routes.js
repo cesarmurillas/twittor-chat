@@ -29,10 +29,16 @@ router.get('/', function (req, res) {
 // Post mensajes
 router.post('/', function (req, res) {
 
+  console.log(req.body.lat);
+  console.log(req.body.lng);
+
   const mensaje = {
     mensaje: req.body.mensaje,
     user: req.body.user,
-    date: getDateToString(new Date())
+    date: getDateToString(new Date()),
+    lat: req.body.lat,
+    lng: req.body.lng,
+    foto: req.body.foto
   };
 
   mensajes.push(mensaje);
